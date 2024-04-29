@@ -30,21 +30,49 @@ export function getURLsFromHTML(htmlBody, baseURL) {
   return links
 }
 
-export async function crawlPage(url) {
-  let page 
+export async function crawlPage(baseURL, currentURL = baseURL, pages = {}) {
   try {
-    page = await fetch(url)
+    const baseU = new URL(baseURL);
+    const curU = new URL(currentURL);
+    if (baseU.hostname != curU.hostname) {
+      return pages;
+    }
+  } catch (error) {
+    return pages;
+  }
+  const normalized = normalizeURL(currentURL);
+  if (normalized in pages) {
+    pages[normalized]++;
+    return pages;
+  }
+  pages[normalized] = 1;
+  try {
+    const pageHtml = await getPageText(currentURL);
+    const urls = getURLsFromHTML(pageHtml, baseURL)
+    for (const url of urls) {
+      await crawlPage(baseURL, url, pages)
+    }
+  } catch (error) {
+    return pages
+  }
+  return pages;
+}
+
+async function getPageText(url) {
+  let page;
+  try {
+    page = await fetch(url);
   } catch (e) {
     throw new Error(`Got Network error: ${err.message}`);
   }
   if (page.status >= 400) {
-    console.log("bad response")
-    return
+    console.log("bad response", url);
+    return;
   }
-  if (!page.headers.get('content-type')?.startsWith('text/html')) {
-    console.log("not an html response")
-    return
+  if (!page.headers.get("content-type")?.startsWith("text/html")) {
+    console.log("not an html response", url);
+    return;
   }
   const text = await page.text();
-  console.log(text)
+  return text
 }
