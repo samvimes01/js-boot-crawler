@@ -9,5 +9,8 @@
     "test": "node --test ."
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "jsdom": "^24.0.0"
+  }
 }
