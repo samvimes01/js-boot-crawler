@@ -29,3 +29,22 @@ export function getURLsFromHTML(htmlBody, baseURL) {
     .filter(Boolean);
   return links
 }
+
+export async function crawlPage(url) {
+  let page 
+  try {
+    page = await fetch(url)
+  } catch (e) {
+    throw new Error(`Got Network error: ${err.message}`);
+  }
+  if (page.status >= 400) {
+    console.log("bad response")
+    return
+  }
+  if (!page.headers.get('content-type')?.startsWith('text/html')) {
+    console.log("not an html response")
+    return
+  }
+  const text = await page.text();
+  console.log(text)
+}
